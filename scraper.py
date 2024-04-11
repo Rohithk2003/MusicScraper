@@ -15,12 +15,12 @@ chrome_options = Options()
 chrome_options.add_argument("--headless")
 
 
-base_working_dir = "E:\\musicScraper\\"
+base_working_dir = os.getcwd() + "/"
 
-if not os.path.isdir(f"{base_working_dir}\\musics"):
-    os.mkdir(f"{base_working_dir}\\musics")
-if not os.path.isdir(f"{base_working_dir}\\videos"):
-    os.mkdir(f"{base_working_dir}\\videos")
+if not os.path.isdir(f"{base_working_dir}musics"):
+    os.mkdir(f"{base_working_dir}musics")
+if not os.path.isdir(f"{base_working_dir}videos"):
+    os.mkdir(f"{base_working_dir}videos")
 
 
 def search_youtube(query):
@@ -47,44 +47,29 @@ def search_youtube(query):
     )
 
     print("[DOWNLOADING VIDEO]")
-    YoutubeAudioDownload(query, url_link.get_attribute("href"), file_name)
+    return YoutubeAudioDownload(query, url_link.get_attribute("href"), file_name)
 
 
 def YoutubeAudioDownload(query, video_url, file_name):
     video = YouTube(video_url)
+    print("d")
     file_name = file_name.split("|")[0]
     video.streams.first().download(
-        filename=f"{file_name}.mp4", output_path=f"{base_working_dir}videos\\"
+        filename=f"{file_name}.mp4", output_path=f"{base_working_dir}videos/"
     )
     print("[AUDIO DOWNLOADED SUCCESSFULLY]")
     print("[CONVERTING TO MP3]")
-    # convert_video_to_audio(file_name)
-    print("[PLAYING AUDIO]")
-    play_audio(query, file_name)
-
-
-def play_audio(query, file_name):
-    pygame.init()
-    pygame.mixer.init()
-    pygame.mixer.music.load(f"{base_working_dir}musics\\{file_name}.mp3")
-    pygame.mixer.music.play()
-    time.sleep(15)
-    pygame.quit()
-    answer = messagebox.askyesno("Play Again", "Is music correct ?")
-    if answer:
-        convert_video_to_audio(file_name)
-    else:
-        search_youtube(query)
+    return convert_video_to_audio(file_name)
 
 
 def convert_video_to_audio(file_name):
-    clip = mp.VideoFileClip(f"{base_working_dir}videos\\{file_name}.mp4")
-    clip.audio.write_audiofile(f"{base_working_dir}musics\\{file_name}.mp3")
+    clip = mp.VideoFileClip(f"{base_working_dir}videos/{file_name}.mp4")
+    clip.audio.write_audiofile(f"{base_working_dir}musics/{file_name}.mp3")
     print("[CONVERTED SUCCESSFULLY]")
+    output = f"{base_working_dir}musics/{file_name}.mp3"
+    return output
 
 
-with open(f"{base_working_dir}music_names.txt", "r") as file:
-    music_names = file.read()
-music_names = music_names.split("\n")
-for music in music_names:
-    search_youtube(music)
+s = input()
+filename = input()
+YoutubeAudioDownload("chandra", s, filename)
