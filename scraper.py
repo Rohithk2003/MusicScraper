@@ -10,17 +10,29 @@ import os
 from selenium.webdriver.chrome.options import Options
 import pygame
 from tkinter import messagebox
+from moviepy.video.fx.all import speedx
 
 chrome_options = Options()
 chrome_options.add_argument("--headless")
 
+from moviepy.editor import VideoFileClip
 
-base_working_dir = os.getcwd() + "/"
 
-if not os.path.isdir(f"{base_working_dir}musics"):
-    os.mkdir(f"{base_working_dir}musics")
-if not os.path.isdir(f"{base_working_dir}videos"):
-    os.mkdir(f"{base_working_dir}videos")
+def convert_to_half_speed(input_video, output_video):
+    clip = VideoFileClip(input_video)
+    # Modify the speed factor to achieve the desired speed
+    new_clip = speedx(clip, factor=0.5)
+    new_clip.write_videofile(output_video)
+    clip.close()
+    new_clip.close()
+
+
+base_working_dir = "E:\\musicScraper\\"
+
+if not os.path.isdir(f"{base_working_dir}\\musics"):
+    os.mkdir(f"{base_working_dir}\\musics")
+if not os.path.isdir(f"{base_working_dir}\\videos"):
+    os.mkdir(f"{base_working_dir}\\videos")
 
 
 def search_youtube(query):
@@ -47,29 +59,44 @@ def search_youtube(query):
     )
 
     print("[DOWNLOADING VIDEO]")
-    return YoutubeAudioDownload(query, url_link.get_attribute("href"), file_name)
+    YoutubeAudioDownload(query, url_link.get_attribute("href"), file_name)
 
 
 def YoutubeAudioDownload(query, video_url, file_name):
     video = YouTube(video_url)
-    print("d")
     file_name = file_name.split("|")[0]
     video.streams.first().download(
-        filename=f"{file_name}.mp4", output_path=f"{base_working_dir}videos/"
+        filename=f"{file_name}.mp4", output_path=f"{base_working_dir}videos\\"
     )
     print("[AUDIO DOWNLOADED SUCCESSFULLY]")
     print("[CONVERTING TO MP3]")
-    return convert_video_to_audio(file_name)
+    print("[PLAYING AUDIO]")
+    convert_video_to_audio(file_name)
+    # play_audio(query, file_name)
+
+
+def play_audio(query, file_name):
+    pygame.init()
+    pygame.mixer.init()
+    pygame.mixer.music.load(f"{base_working_dir}musics\\{file_name}.mp3")
+    pygame.mixer.music.play()
+    time.sleep(15)
+    pygame.quit()
+    answer = messagebox.askyesno("Play Again", "Is music correct ?")
+    if answer:
+        convert_video_to_audio(file_name)
+    else:
+        search_youtube(query)
 
 
 def convert_video_to_audio(file_name):
-    clip = mp.VideoFileClip(f"{base_working_dir}videos/{file_name}.mp4")
-    clip.audio.write_audiofile(f"{base_working_dir}musics/{file_name}.mp3")
+    clip = mp.VideoFileClip(f"{base_working_dir}videos\\{file_name}.mp4")
+    clip.audio.write_audiofile(f"{base_working_dir}musics\\{file_name}.mp3")
     print("[CONVERTED SUCCESSFULLY]")
-    output = f"{base_working_dir}musics/{file_name}.mp3"
-    return output
 
 
-s = input()
-filename = input()
-YoutubeAudioDownload("chandra", s, filename)
+with open(f"{base_working_dir}music_names.txt", "r") as file:
+    music_names = file.read()
+music_names = music_names.split("\n")
+for music in music_names:
+    search_youtube(music)
